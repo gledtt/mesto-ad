@@ -9,9 +9,8 @@ export const likeCard = (likeButton, cardId, cardsLikes) => {
     .then((data) => {
       cardsLikes.textContent = data.likes.length;
     })
-    .catch(err => {
+    .catch(() => {
       likeButton.classList.toggle("card__like-button_is-active");
-      console.error('Ошибка при обновлении лайка:', err);
     });
 };
 

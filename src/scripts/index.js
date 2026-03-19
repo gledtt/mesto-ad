@@ -108,9 +108,6 @@ const handleProfileFormSubmit = (evt) => {
       profileDescription.textContent = userData.about;
       closeModalWindow(profileFormModalWindow);
     })
-    .catch((err) => {
-      console.log(err);
-    })
     .finally (() => {
     submitButton.textContent = originalText;
     submitButton.disabled = false;
@@ -151,9 +148,6 @@ const handleInfoClick = (cardId) => {
       });
 
       openModalWindow(cardInfoModal);
-    })
-    .catch((err) => {
-      console.error("Ошибка загрузки статистики:", err);
     });
 };
 
@@ -167,9 +161,6 @@ const handleAvatarFromSubmit = (evt) => {
     .then((userData) => {
       profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
       closeModalWindow(avatarFormModalWindow);
-    })
-    .catch((err) => {
-      console.log(err);
     })
     .finally (() => {
     submitButton.textContent = originalText;
@@ -220,9 +211,6 @@ const handleRemoveCardSubmit = (evt) => {
       closeModalWindow(removeCardPopup);
       cardToDelete = null;
       cardIdToDelete = null;
-    })
-    .catch((err) => {
-      console.error('Ошибка при удалении карточки:', err);
     })
     .finally(() => {
       submitButton.textContent = originalText;
@@ -285,7 +273,4 @@ Promise.all([getCardList(), getUserInfo()])
       )
     )
   })
-})
-.catch((err) =>{
-  console.log(err);
 });
