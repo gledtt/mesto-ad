@@ -9,7 +9,6 @@ import { createCardElement, likeCard } from "./components/card.js";
 import { openModalWindow, closeModalWindow, setCloseModalWindowEventListeners } from "./components/modal.js";
 import { enableValidation, clearValidation } from "./components/validation.js";
 import { getUserInfo, getCardList, setUserInfo, setUserAvatar, createCard, deleteCardRequest } from "./components/api.js";
-let currentUser = null;
 
 //Настройки валидации
 const validationSettings = {
@@ -60,6 +59,8 @@ const cardInfoUserList = cardInfoModal.querySelector(".popup__list");
 const removeCardPopup = document.querySelector('.popup_type_remove-card');
 const removeCardForm = removeCardPopup.querySelector('.popup__form');
 
+
+let currentUser = null;
 let cardToDelete = null;
 let cardIdToDelete = null;
 
@@ -179,7 +180,6 @@ const handleCardFormSubmit = (evt) => {
     link: cardLinkInput.value
    })
    .then((newCardData) => {
-    console.log('Ответ сервера при создании карточки:', newCardData);
     placesWrap.prepend(
     createCardElement(newCardData,{
         onPreviewPicture: handlePreviewPicture,
