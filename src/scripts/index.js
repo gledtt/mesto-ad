@@ -5,7 +5,7 @@
 
   Из index.js не допускается что то экспортировать
 */
-import { createCardElement, deleteCard, likeCard } from "./components/card.js";
+import { createCardElement, likeCard } from "./components/card.js";
 import { openModalWindow, closeModalWindow, setCloseModalWindowEventListeners } from "./components/modal.js";
 import { enableValidation, clearValidation } from "./components/validation.js";
 import { getUserInfo, getCardList, setUserInfo, setUserAvatar, createCard, deleteCardRequest } from "./components/api.js";
@@ -50,13 +50,41 @@ const avatarFormModalWindow = document.querySelector(".popup_type_edit-avatar");
 const avatarForm = avatarFormModalWindow.querySelector(".popup__form");
 const avatarInput = avatarForm.querySelector(".popup__input");
 
+const cardInfoModal = document.querySelector(".popup_type_info");
+const cardInfoTitle = cardInfoModal.querySelector(".popup__title");
+const cardInfoSubtitle = cardInfoModal.querySelector(".popup__text");
+const cardInfoInfoList = cardInfoModal.querySelector(".popup__info");
+const cardInfoUserList = cardInfoModal.querySelector(".popup__list");
+
 // Попап подтверждения удаления
 const removeCardPopup = document.querySelector('.popup_type_remove-card');
 const removeCardForm = removeCardPopup.querySelector('.popup__form');
-const removeCardCloseButton = removeCardPopup.querySelector('.popup__close');
 
 let cardToDelete = null;
 let cardIdToDelete = null;
+
+const formatDate = (date) =>
+  date.toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+const createInfoDefinition = (label, value) => {
+  const template = document.getElementById("popup-info-definition-template");
+  const clone = template.content.cloneNode(true);
+  clone.querySelector(".popup__info-term").textContent = label;
+  clone.querySelector(".popup__info-description").textContent = value;
+  return clone;
+};
+
+const createUsersLike = (user) => {
+  const template = document.getElementById("popup-info-user-preview-template");
+  const clone = template.content.cloneNode(true);
+  const listLikes = clone.querySelector(".popup__list-item");
+  listLikes.textContent = user.name;
+  return clone;
+};
 
 const handlePreviewPicture = ({ name, link }) => {
   imageElement.src = link;
@@ -67,7 +95,7 @@ const handlePreviewPicture = ({ name, link }) => {
 
 const handleProfileFormSubmit = (evt) => {
   evt.preventDefault();
-  const submitButton = cardForm.querySelector('.popup__button');
+  const submitButton = profileForm.querySelector('.popup__button');
   const originalText = submitButton.textContent;
   submitButton.textContent = "Сохранение...";
   submitButton.disabled = true;
@@ -78,6 +106,7 @@ const handleProfileFormSubmit = (evt) => {
     .then((userData) => {
       profileTitle.textContent = userData.name;
       profileDescription.textContent = userData.about;
+      closeModalWindow(profileFormModalWindow);
     })
     .catch((err) => {
       console.log(err);
@@ -85,19 +114,59 @@ const handleProfileFormSubmit = (evt) => {
     .finally (() => {
     submitButton.textContent = originalText;
     submitButton.disabled = false;
-    closeModalWindow(profileFormModalWindow);
+    });
+};
+
+const handleInfoClick = (cardId) => {
+  cardInfoInfoList.textContent = "";
+  cardInfoUserList.textContent = "";
+
+  getCardList()
+    .then((cards) => {
+      const cardData = cards.find((card) => card._id === cardId);
+      if (!cardData) return;
+
+      cardInfoSubtitle.textContent = "Лайкнули:";
+      cardInfoTitle.textContent = "Информация о карточке";
+
+      cardInfoInfoList.append(
+        createInfoDefinition("Описание:", cardData.name)
+      );
+
+      const creationDate = formatDate(new Date(cardData.createdAt));
+      cardInfoInfoList.append(
+        createInfoDefinition("Дата создания:", creationDate)
+      );
+
+      cardInfoInfoList.append(
+        createInfoDefinition("Владелец карточки:", cardData.owner.name)
+      );
+
+      cardInfoInfoList.append(
+        createInfoDefinition("Количество лайков:", cardData.likes.length)
+      );
+
+      cardData.likes.forEach((user) => {
+        cardInfoUserList.append(createUsersLike(user));
+      });
+
+      openModalWindow(cardInfoModal);
+    })
+    .catch((err) => {
+      console.error("Ошибка загрузки статистики:", err);
     });
 };
 
 const handleAvatarFromSubmit = (evt) => {
   evt.preventDefault();
-  const submitButton = cardForm.querySelector('.popup__button');
+  const submitButton = avatarForm.querySelector('.popup__button');
   const originalText = submitButton.textContent;
   submitButton.textContent = "Сохранение...";
   submitButton.disabled = true;
   setUserAvatar({ avatar: avatarInput.value })
     .then((userData) => {
       profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
+      closeModalWindow(avatarFormModalWindow);
     })
     .catch((err) => {
       console.log(err);
@@ -105,7 +174,6 @@ const handleAvatarFromSubmit = (evt) => {
     .finally (() => {
     submitButton.textContent = originalText;
     submitButton.disabled = false;
-    closeModalWindow(avatarFormModalWindow);
     });
 };
 
@@ -120,11 +188,13 @@ const handleCardFormSubmit = (evt) => {
     link: cardLinkInput.value
    })
    .then((newCardData) => {
+    console.log('Ответ сервера при создании карточки:', newCardData);
     placesWrap.prepend(
     createCardElement(newCardData,{
         onPreviewPicture: handlePreviewPicture,
         onLikeIcon: likeCard,
-        onDeleteCard: handleDeleteCardClick},
+        onDeleteCard: handleDeleteCardClick,
+        onInfoIcon: handleInfoClick},
         currentUser._id
       )
     );
@@ -191,10 +261,6 @@ openCardFormButton.addEventListener("click", () => {
   clearValidation(cardForm, validationSettings);
 });
 
-removeCardCloseButton.addEventListener("click", () => 
-  handleDeleteCardClick(cardElement, data._id));
-
-
 //настраиваем обработчики закрытия попапов
 const allPopups = document.querySelectorAll(".popup");
 allPopups.forEach((popup) => {
@@ -213,7 +279,8 @@ Promise.all([getCardList(), getUserInfo()])
       createCardElement(cardData, {
         onPreviewPicture: handlePreviewPicture, 
         onLikeIcon: likeCard,
-        onDeleteCard: handleDeleteCardClick},
+        onDeleteCard: handleDeleteCardClick,
+        onInfoIcon: handleInfoClick},
         userData._id
       )
     )

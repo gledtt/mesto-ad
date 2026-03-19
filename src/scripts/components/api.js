@@ -16,7 +16,7 @@ export const getUserInfo = () => {
   }).then(getResponseData); 
 };
 
-export const getCardList = (res) => {
+export const getCardList = () => {
     return fetch(`${config.baseUrl}/cards`, {
         headers: config.headers,
     }).then(getResponseData)
@@ -51,7 +51,7 @@ export const createCard = ({ name, link}) => {
             name,
             link
         })
-    })
+    }).then(getResponseData)
 };
 
 export const deleteCardRequest = (cardId) => {

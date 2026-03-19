@@ -1,4 +1,4 @@
-import { deleteCardRequest, changeLikeCardStatus} from "./api.js";
+import { changeLikeCardStatus } from "./api.js";
 
 export const likeCard = (likeButton, cardId, cardsLikes) => {
   const isLiked = likeButton.classList.contains("card__like-button_is-active");
@@ -15,16 +15,6 @@ export const likeCard = (likeButton, cardId, cardsLikes) => {
     });
 };
 
-export const deleteCard = (cardElement, cardId) => {
-  deleteCardRequest(cardId)
-  .then(() => {
-    cardElement.remove();
-  })
-  .catch((err) => {
-    console.log(err)  
-  })
-}
-
 const getTemplate = () => {
   return document
     .getElementById("card-template")
@@ -34,13 +24,14 @@ const getTemplate = () => {
 
 export const createCardElement = (
   data,
-  { onPreviewPicture, onLikeIcon, onDeleteCard },
+  { onPreviewPicture, onLikeIcon, onDeleteCard, onInfoIcon },
   userId) => {
   const cardElement = getTemplate();
   const likeButton = cardElement.querySelector(".card__like-button");
   const deleteButton = cardElement.querySelector(".card__control-button_type_delete");
   const cardImage = cardElement.querySelector(".card__image");
   const cardsLikes = cardElement.querySelector(".card__like-count");
+  const infoButton = cardElement.querySelector(".card__control-button_type_info");
 
   cardImage.src = data.link;
   cardImage.alt = data.name;
@@ -60,6 +51,10 @@ export const createCardElement = (
 
   if (onLikeIcon) {
     likeButton.addEventListener("click", () => onLikeIcon(likeButton, data._id, cardsLikes));
+  }
+
+  if (infoButton){
+    infoButton.addEventListener("click", () => onInfoIcon(data._id))
   }
 
 
